@@ -72,7 +72,7 @@ const App = () => {
               >
                 <Button
                   component={Link}
-                  to="/users"
+                  to="/"
                   disableRipple
                   sx={{
                     color: 'common.white',
