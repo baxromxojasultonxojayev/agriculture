@@ -17,6 +17,8 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Divider from '@mui/material/Divider';
 
+import { useTranslation } from 'react-i18next';
+
 import './style.css';
 
 type StoredPolygon = {
@@ -72,6 +74,8 @@ const ResizeHandler = () => {
 };
 
 const MapPage = () => {
+  const { t, i18n } = useTranslation();
+
   const [polygons, setPolygons] = useState<StoredPolygon[]>(() =>
     loadPolygons()
   );
@@ -95,11 +99,14 @@ const MapPage = () => {
 
   const handleFinishPolygon = () => {
     if (currentPoints.length < 3) {
-      alert('Для полигона нужно минимум 3 точки');
+      alert(
+        t('min_points_error') ||
+          'Полигон учун камида 3 та нуқта керак / Для полигона нужно минимум 3 точки'
+      );
       return;
     }
 
-    const baseName = nameInput.trim() || 'Новый полигон';
+    const baseName = nameInput.trim() || t('new_polygon');
     const poly: StoredPolygon = {
       id: crypto.randomUUID(),
       name: baseName,
@@ -115,14 +122,14 @@ const MapPage = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm('Вы действительно хотите удалить этот полигон?')) return;
+    if (!confirm(t('delete_confirm_polygon') || t('confirm_delete'))) return;
     const next = polygons.filter((p) => p.id !== id);
     setPolygons(next);
     savePolygons(next);
   };
 
   const handleClearAll = () => {
-    if (!confirm('Удалить все полигоны?')) return;
+    if (!confirm(t('delete_all_confirm') || t('confirm_delete'))) return;
     setPolygons([]);
     savePolygons([]);
   };
@@ -136,23 +143,24 @@ const MapPage = () => {
     [polygons]
   );
 
+  const currentLocale = (i18n.language || 'ru').startsWith('uz')
+    ? 'uz-UZ'
+    : 'ru-RU';
+
   return (
     <div className="map-page">
       <Paper className="map-sidebar" elevation={2}>
         <Typography variant="h5" gutterBottom>
-          Карта – полигоны
+          {t('map_title') || t('polygons')}
         </Typography>
 
-        <Typography variant="body2">
-          Кликните по карте, чтобы добавить вершины. После того как добавите все
-          точки, нажмите <strong>«Сохранить полигон»</strong>.
-        </Typography>
+        <Typography variant="body2">{t('map_helper_text')}</Typography>
 
         <Stack spacing={1} sx={{ my: 2 }}>
           <TextField
             size="small"
-            label="Название полигона"
-            placeholder="Например: Зона доставки"
+            label={t('polygon_name')}
+            placeholder={t('polygon_name_placeholder') || ''}
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
           />
@@ -162,18 +170,19 @@ const MapPage = () => {
               size="small"
               onClick={handleResetCurrent}
             >
-              ОЧИСТИТЬ ТЕКУЩИЙ
+              {t('clear_current')}
             </Button>
             <Button
               variant="contained"
               size="small"
               onClick={handleFinishPolygon}
             >
-              СОХРАНИТЬ ПОЛИГОН
+              {t('save_polygon')}
             </Button>
           </Stack>
           <Typography variant="caption" color="text.secondary">
-            Текущих точек: {currentPoints.length}
+            {t('points_count_label') || t('points_count')}:{' '}
+            {currentPoints.length}
           </Typography>
         </Stack>
 
@@ -182,7 +191,7 @@ const MapPage = () => {
         <Stack spacing={1} sx={{ mt: 1 }}>
           <TextField
             size="small"
-            label="Фильтр по названию"
+            label={t('filter')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           />
@@ -193,17 +202,17 @@ const MapPage = () => {
             onClick={handleClearAll}
             disabled={polygons.length === 0}
           >
-            УДАЛИТЬ ВСЕ ПОЛИГОНЫ
+            {t('delete_all')}
           </Button>
         </Stack>
 
         <div className="poly-list">
           <Typography variant="subtitle1" sx={{ mt: 2 }}>
-            Сохранённые полигоны
+            {t('saved_polygons') || t('polygons')}
           </Typography>
           {filteredPolygons.length === 0 && (
             <Typography variant="body2" className="muted">
-              Пока нет ни одного полигона
+              {t('no_polygons')}
             </Typography>
           )}
           {filteredPolygons.map((p) => (
@@ -211,8 +220,8 @@ const MapPage = () => {
               <div>
                 <strong>{p.name}</strong>
                 <div className="muted">
-                  {p.points.length} точек •{' '}
-                  {new Date(p.createdAt).toLocaleDateString('ru-RU')}
+                  {p.points.length} {t('points_short') || ''} •{' '}
+                  {new Date(p.createdAt).toLocaleDateString(currentLocale)}
                 </div>
               </div>
               <Button
@@ -221,7 +230,7 @@ const MapPage = () => {
                 variant="outlined"
                 onClick={() => handleDelete(p.id)}
               >
-                Удалить
+                {t('delete')}
               </Button>
             </div>
           ))}

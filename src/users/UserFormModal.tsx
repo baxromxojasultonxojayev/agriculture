@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -18,6 +19,7 @@ import FormHelperText from '@mui/material/FormHelperText';
 
 import { useUsersStore } from '../store/usersStore';
 import { User, Gender } from '../services/storage';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
   initialUser: User | null;
@@ -25,43 +27,55 @@ type Props = {
   onSaved: (message: string) => void;
 };
 
+type FormValues = {
+  firstName: string;
+  lastName: string;
+  birthdate: string;
+  gender: Gender;
+};
+
 const today = new Date();
 const maxDate = today.toISOString().slice(0, 10);
-
-const userSchema = z.object({
-  firstName: z
-    .string()
-    .min(2, 'Минимум 2 символа')
-    .max(50, 'Слишком длинное имя'),
-  lastName: z
-    .string()
-    .min(2, 'Минимум 2 символа')
-    .max(50, 'Слишком длинная фамилия'),
-  birthdate: z
-    .string()
-    .nonempty('Дата рождения обязательна')
-    .refine(
-      (value) => {
-        const d = new Date(value);
-        if (Number.isNaN(d.getTime())) return false;
-        return d <= today;
-      },
-      { message: 'Дата рождения не может быть в будущем' }
-    ),
-  gender: z.enum(['male', 'female'], {
-    errorMap: () => ({ message: 'Пожалуйста, выберите пол' }),
-  }),
-});
-
-type FormValues = z.infer<typeof userSchema>;
 
 export default function UserFormModal({
   initialUser,
   onClose,
   onSaved,
 }: Props) {
+  const { t, i18n } = useTranslation();
+
   const addUser = useUsersStore((s) => s.addUser);
   const updateUser = useUsersStore((s) => s.updateUser);
+
+  // Zod schema ni tilga qarab rebuild qilamiz
+  const userSchema = useMemo(
+    () =>
+      z.object({
+        firstName: z
+          .string()
+          .min(2, t('first_name_min')) // "Минимум 2 символа"
+          .max(50, t('first_name_max')), // "Слишком длинное имя"
+        lastName: z
+          .string()
+          .min(2, t('last_name_min')) // "Минимум 2 символа"
+          .max(50, t('last_name_max')), // "Слишком длинная фамилия"
+        birthdate: z
+          .string()
+          .nonempty(t('birthdate_required')) // "Дата рождения обязательна"
+          .refine(
+            (value) => {
+              const d = new Date(value);
+              if (Number.isNaN(d.getTime())) return false;
+              return d <= today;
+            },
+            { message: t('birthdate_future_error') } // "Дата рождения не может быть в будущем"
+          ),
+        gender: z.enum(['male', 'female'], {
+          errorMap: () => ({ message: t('gender_required') }),
+        }),
+      }),
+    [t, i18n.language]
+  );
 
   const {
     register,
@@ -103,7 +117,7 @@ export default function UserFormModal({
         ...values,
       };
       updateUser(updated);
-      onSaved('Пользователь успешно обновлён');
+      onSaved(t('user_updated')); // "Пользователь успешно обновлён"
     } else {
       const newUser: User = {
         id: crypto.randomUUID(),
@@ -111,35 +125,33 @@ export default function UserFormModal({
         ...values,
       };
       addUser(newUser);
-      onSaved('Пользователь успешно создан');
+      onSaved(t('user_created')); // "Пользователь успешно создан"
     }
     onClose();
   };
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>
-        {initialUser ? 'Редактирование пользователя' : 'Создание пользователя'}
-      </DialogTitle>
+      <DialogTitle>{initialUser ? t('edit_user') : t('add_user')}</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <TextField
-              label="Имя"
+              label={t('first_name')}
               fullWidth
               {...register('firstName')}
               error={!!errors.firstName}
               helperText={errors.firstName?.message}
             />
             <TextField
-              label="Фамилия"
+              label={t('last_name')}
               fullWidth
               {...register('lastName')}
               error={!!errors.lastName}
               helperText={errors.lastName?.message}
             />
             <TextField
-              label="Дата рождения"
+              label={t('birthdate')}
               type="date"
               InputLabelProps={{ shrink: true }}
               fullWidth
@@ -150,17 +162,17 @@ export default function UserFormModal({
             />
 
             <FormControl error={!!errors.gender}>
-              <FormLabel>Пол</FormLabel>
+              <FormLabel>{t('gender')}</FormLabel>
               <RadioGroup row>
                 <FormControlLabel
                   value="male"
                   control={<Radio {...register('gender')} />}
-                  label="Мужчина"
+                  label={t('male')}
                 />
                 <FormControlLabel
                   value="female"
                   control={<Radio {...register('gender')} />}
-                  label="Женщина"
+                  label={t('female')}
                 />
               </RadioGroup>
               {errors.gender && (
@@ -171,10 +183,10 @@ export default function UserFormModal({
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="inherit">
-            Отмена
+            {t('cancel')}
           </Button>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            Сохранить
+            {t('save')}
           </Button>
         </DialogActions>
       </form>

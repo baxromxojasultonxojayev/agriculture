@@ -21,7 +21,11 @@ import TextField from '@mui/material/TextField';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
+import { useTranslation } from 'react-i18next';
+
 export default function UsersPage() {
+  const { t, i18n } = useTranslation();
+
   const users = useUsersStore((s) => s.users);
   const deleteUser = useUsersStore((s) => s.deleteUser);
 
@@ -68,13 +72,17 @@ export default function UsersPage() {
       deleteUser(deletingUser.id);
       setSnackbar({
         open: true,
-        message: 'Пользователь успешно удалён',
+        message: t('user_deleted'),
         severity: 'success',
       });
     }
     setDeleteModalOpen(false);
     setDeletingUser(null);
   };
+
+  const currentLocale = (i18n.language || 'ru').startsWith('uz')
+    ? 'uz-UZ'
+    : 'ru-RU';
 
   return (
     <>
@@ -85,7 +93,7 @@ export default function UsersPage() {
         mb={2}
         spacing={1}
       >
-        <Typography variant="h5">Пользователи</Typography>
+        <Typography variant="h5">{t('users')}</Typography>
 
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
@@ -94,12 +102,12 @@ export default function UsersPage() {
         >
           <TextField
             size="small"
-            label="Поиск по имени/фамилии"
+            label={t('search_user')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <Button variant="contained" onClick={handleAdd}>
-            + Добавить
+            + {t('add_user')}
           </Button>
         </Stack>
       </Stack>
@@ -108,12 +116,12 @@ export default function UsersPage() {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Имя</TableCell>
-              <TableCell>Фамилия</TableCell>
-              <TableCell>Дата рождения</TableCell>
-              <TableCell>Пол</TableCell>
+              <TableCell>{t('first_name')}</TableCell>
+              <TableCell>{t('last_name')}</TableCell>
+              <TableCell>{t('birthdate')}</TableCell>
+              <TableCell>{t('gender')}</TableCell>
               <TableCell width={140} align="right">
-                Действия
+                {t('actions')}
               </TableCell>
             </TableRow>
           </TableHead>
@@ -121,7 +129,7 @@ export default function UsersPage() {
             {filteredUsers.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center">
-                  Нет данных
+                  {t('no_data')}
                 </TableCell>
               </TableRow>
             )}
@@ -131,16 +139,16 @@ export default function UsersPage() {
                 <TableCell>{u.lastName}</TableCell>
                 <TableCell>
                   {u.birthdate
-                    ? new Date(u.birthdate).toLocaleDateString('ru-RU')
+                    ? new Date(u.birthdate).toLocaleDateString(currentLocale)
                     : '-'}
                 </TableCell>
                 <TableCell>
-                  {u.gender === 'male' ? 'Мужчина' : 'Женщина'}
+                  {u.gender === 'male' ? t('male') : t('female')}
                 </TableCell>
                 <TableCell align="right">
                   <IconButton
                     size="small"
-                    aria-label="Редактировать"
+                    aria-label={t('edit_user')}
                     onClick={() => handleEdit(u)}
                   >
                     <EditIcon fontSize="small" />
@@ -148,7 +156,7 @@ export default function UsersPage() {
                   <IconButton
                     size="small"
                     color="error"
-                    aria-label="Удалить"
+                    aria-label={t('delete')}
                     onClick={() => handleDeleteClick(u)}
                   >
                     <DeleteIcon fontSize="small" />

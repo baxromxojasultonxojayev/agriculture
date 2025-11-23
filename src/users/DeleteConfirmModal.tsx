@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -9,13 +11,13 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+
 import type { User } from '../services/storage';
+import { useTranslation } from 'react-i18next';
 
-const schema = z.object({
-  reason: z.string().min(5, 'Пожалуйста, укажите причину (минимум 5 символов)'),
-});
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = {
+  reason: string;
+};
 
 type Props = {
   open: boolean;
@@ -30,6 +32,17 @@ export default function DeleteConfirmModal({
   onCancel,
   onConfirm,
 }: Props) {
+  const { t } = useTranslation();
+
+  // Zod schema’ni ham tarjima bilan bog‘laymiz
+  const schema = useMemo(
+    () =>
+      z.object({
+        reason: z.string().min(5, t('delete_reason_min')), // "Пожалуйста, укажите причину (минимум 5 символов)"
+      }),
+    [t]
+  );
+
   const {
     register,
     handleSubmit,
@@ -52,21 +65,19 @@ export default function DeleteConfirmModal({
 
   if (!user) return null;
 
+  const fullName = `${user.lastName} ${user.firstName}`;
+
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Подтверждение удаления</DialogTitle>
+      <DialogTitle>{t('delete_confirm_title')}</DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
           <Stack spacing={2} mt={1}>
             <Typography variant="body2">
-              Вы действительно хотите удалить пользователя{' '}
-              <strong>
-                {user.lastName} {user.firstName}
-              </strong>
-              ?
+              {t('delete_confirm_user_text', { fullName })}
             </Typography>
             <TextField
-              label="Причина удаления"
+              label={t('delete_reason')}
               multiline
               minRows={3}
               fullWidth
@@ -78,7 +89,7 @@ export default function DeleteConfirmModal({
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="inherit">
-            Отмена
+            {t('cancel')}
           </Button>
           <Button
             type="submit"
@@ -86,7 +97,7 @@ export default function DeleteConfirmModal({
             variant="contained"
             disabled={isSubmitting}
           >
-            Удалить
+            {t('delete')}
           </Button>
         </DialogActions>
       </form>
