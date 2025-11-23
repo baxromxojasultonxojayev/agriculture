@@ -138,7 +138,6 @@ const MapPage = () => {
 
   return (
     <div className="map-page">
-      {/* Chap panel */}
       <Paper className="map-sidebar" elevation={2}>
         <Typography variant="h5" gutterBottom>
           Карта – полигоны

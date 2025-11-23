@@ -1,12 +1,12 @@
-const KEY = "app_users";
+const KEY = 'app_users';
 
-export type Gender = "male" | "female";
+export type Gender = 'male' | 'female';
 
 export type User = {
   id: string;
   firstName: string;
   lastName: string;
-  birthdate: string; // ISO "YYYY-MM-DD"
+  birthdate: string;
   gender: Gender;
   createdAt: string;
 };

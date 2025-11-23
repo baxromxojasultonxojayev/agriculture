@@ -13,7 +13,7 @@ Talablar bo‘yicha tayyorlangan demo:
 
 ### Talab qilinadigan versiyalar
 
-- **Node.js**: 18.x yoki 20.x (LTS, masalan `v18.18.0`)
+- **Node.js**: 18.16x yoki 20.x (LTS, masalan `v18.18.0`)
 - **npm**: 9.x yoki 10.x
 
 ### Buyruqlar
@@ -25,4 +25,5 @@ npm run build
 ```
 
 Keyin brauzerda `http://localhost:5173` manzilini oching.
+
 # agriculture
